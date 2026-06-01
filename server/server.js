@@ -11,9 +11,9 @@ import authRoutes from './routes/auth.routes.js';
 import productRoutes from './routes/product.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import userRoutes from './routes/user.routes.js';
+import User from './models/User.model.js';
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
@@ -50,4 +50,18 @@ app.get('/api/health', (_, res) => res.json({ status: 'OK', env: process.env.NOD
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT} [${process.env.NODE_ENV}]`));
+
+connectDB().then(async () => {
+  const adminExists = await User.findOne({ role: 'admin' });
+  if (!adminExists) {
+    await User.create({
+      name: 'Admin',
+      email: 'admin@alquresh.pk',
+      password: 'Admin@123',
+      phone: '03001234567',
+      role: 'admin',
+    });
+    console.log('✅ Admin created: admin@alquresh.pk / Admin@123');
+  }
+  app.listen(PORT, () => console.log(`Server running on port ${PORT} [${process.env.NODE_ENV}]`));
+});
